@@ -7,6 +7,12 @@ import CandidateListPage from './pages/CandidateListPage'
 import CandidateDetailPage from './pages/CandidateDetailPage'
 import JobListPage from './pages/JobListPage'
 import JobDetailPage from './pages/JobDetailPage'
+import ApplicationListPage from './pages/ApplicationListPage'
+import ApplicationDetailPage from './pages/ApplicationDetailPage'
+import MedicalListPage from './pages/MedicalListPage'
+import VisaListPage from './pages/VisaListPage'
+import TicketListPage from './pages/TicketListPage'
+import DeploymentListPage from './pages/DeploymentListPage'
 
 const queryClient = new QueryClient()
 
@@ -71,6 +77,55 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/applications"
+        element={
+          <ProtectedRoute>
+            <ApplicationListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/applications/:id"
+        element={
+          <ProtectedRoute>
+            <ApplicationDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/medical"
+        element={
+          <ProtectedRoute>
+            <MedicalListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/visa"
+        element={
+          <ProtectedRoute>
+            <VisaListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tickets"
+        element={
+          <ProtectedRoute>
+            <TicketListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/deployment"
+        element={
+          <ProtectedRoute>
+            <DeploymentListPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
     </Routes>
   )

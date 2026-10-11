@@ -12,6 +12,9 @@ from .serializers import (
     PassportUploadSerializer,
 )
 from .services import PassportOCRService
+from django.http import FileResponse
+from django.core.exceptions import PermissionDenied
+from rest_framework import status
 
 class DocumentViewSet(viewsets.ModelViewSet):
     """Document CRUD operations"""
@@ -120,3 +123,62 @@ class PassportScanViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PassportScanSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['candidate', 'status']
+    
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        """Secure document download with permission check"""
+        document = self.get_object()
+        
+        # Permission check
+        if not self._can_access_document(request.user, document):
+            raise PermissionDenied("You don't have permission to download this document")
+        
+        # Log download
+        AuditLog.objects.create(
+            user=request.user,
+            action='DOCUMENT_DOWNLOAD',
+            object_type='Document',
+            object_id=document.id,
+            details={
+                'candidate': document.candidate.full_name,
+                'document_type': document.document_type.name,
+                'file_name': document.original_filename,
+                'ip_address': self._get_client_ip(request),
+            }
+        )
+        
+        # Return file
+        response = FileResponse(document.file.open('rb'))
+        response['Content-Disposition'] = f'attachment; filename="{document.original_filename}"'
+        return response
+    
+    def _can_access_document(self, user, document):
+        """Check if user can access this document"""
+        # Admin can see all
+        if user.is_superuser or user.is_staff:
+            return True
+        
+        # Candidate can see own documents
+        if hasattr(user, 'candidate_profile') and user.candidate_profile.candidate == document.candidate:
+            return True
+        
+        # Recruiter can see assigned candidates
+        if hasattr(user, 'recruiter_profile'):
+            if user.recruiter_profile in [document.candidate.recruiter]:
+                return True
+        
+        # Agent can see own candidates
+        if hasattr(user, 'agent_profile'):
+            if user.agent_profile == document.candidate.agent:
+                return True
+        
+        return False
+    
+    def _get_client_ip(self, request):
+        """Get client IP address"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip

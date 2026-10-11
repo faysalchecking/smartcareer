@@ -23,11 +23,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third-party apps
     'rest_framework',
     'corsheaders',
     'django_filters',
-
+    
     # SMART CAREER apps
     'smart_career.apps.common',
     'smart_career.apps.authentication',
@@ -213,6 +212,27 @@ LOGGING = {
         },
     },
 }
+
+# Storage Configuration
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'storage', 'media')
+
+# Secure file upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_TEMP_DIR = os.path.join(BASE_DIR, '..', 'storage', 'temp')
+
+# Allowed upload extensions
+ALLOWED_DOCUMENT_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx']
+MAX_DOCUMENT_SIZE = 5 * 1024 * 1024  # 5MB
+
+# Storage backend (development)
+if DEBUG:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+else:
+    # Production: use S3/R2 (configure later)
+    # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    pass
 
 # Environment
 ENVIRONMENT = config('ENVIRONMENT', default='development')
