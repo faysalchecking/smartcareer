@@ -9,20 +9,16 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # JWT Token endpoints
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
-    # App endpoints
-    path('api/auth/', include('smart_career.apps.authentication.urls', namespace='auth')),
-    path('api/candidates/', include('smart_career.apps.candidates.urls', namespace='candidates')),
-    path('api/jobs/', include('smart_career.apps.jobs.urls', namespace='jobs')),
-    path('api/applications/', include('smart_career.apps.applications.urls', namespace='applications')),
-    path('api/documents/', include('smart_career.apps.documents.urls', namespace='documents')),
-    path('api/medical/', include('smart_career.apps.medical.urls', namespace='medical')),
-    path('api/visa/', include('smart_career.apps.visa.urls', namespace='visa')),
-    path('api/finance/', include('smart_career.apps.finance.urls', namespace='finance')),
-    path('api/ai/', include('smart_career.apps.ai.urls', namespace='ai')),
+    path('api/auth/', include('smart_career.apps.authentication.urls')),
+    path('api/candidates/', include('smart_career.apps.candidates.urls')),
+    path('api/jobs/', include('smart_career.apps.jobs.urls')),
+    path('api/applications/', include('smart_career.apps.applications.urls')),
+    path('api/documents/', include('smart_career.apps.documents.urls')),
+    path('api/medical/', include('smart_career.apps.medical.urls')),
+    path('api/visa/', include('smart_career.apps.visa.urls')),
+    path('api/tasks/', include('smart_career.apps.tasks.urls')),
+    path('api/alerts/', include('smart_career.apps.alerts.urls')),
+    path('api/notifications/', include('smart_career.apps.notifications.urls')),
 ]
 
 if settings.DEBUG:

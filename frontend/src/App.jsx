@@ -13,6 +13,9 @@ import MedicalListPage from './pages/MedicalListPage'
 import VisaListPage from './pages/VisaListPage'
 import TicketListPage from './pages/TicketListPage'
 import DeploymentListPage from './pages/DeploymentListPage'
+import TaskListPage from './pages/TaskListPage'
+import AlertCenterPage from './pages/AlertCenterPage'
+import NotificationsPage from './pages/NotificationsPage'
 
 const queryClient = new QueryClient()
 
@@ -122,6 +125,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DeploymentListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <TaskListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/alerts"
+        element={
+          <ProtectedRoute>
+            <AlertCenterPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

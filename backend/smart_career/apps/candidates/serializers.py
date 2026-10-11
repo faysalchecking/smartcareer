@@ -2,6 +2,13 @@ from rest_framework import serializers
 from django.utils import timezone
 from .models import Candidate, Agent, Recruiter
 
+class CandidateMinimalSerializer(serializers.ModelSerializer):
+    """Minimal candidate info for relationships"""
+    class Meta:
+        model = Candidate
+        fields = ['id', 'candidate_id', 'full_name', 'passport_number']
+        read_only_fields = ['candidate_id']
+        
 class AgentSerializer(serializers.ModelSerializer):
     """Serialize agent information"""
     class Meta:
