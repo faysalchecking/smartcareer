@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'smart_career.apps.documents',
     'smart_career.apps.medical',
     'smart_career.apps.visa',
-    'smart_career.apps.finance',
+    
     'smart_career.apps.ai',
     'smart_career.apps.tasks',
     'smart_career.apps.alerts',
@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'smart_career.apps.agents',
     'smart_career.apps.clients',
     'smart_career.apps.portals',
+    'smart_career.apps.finance',
+
 ]
 
 MIDDLEWARE = [

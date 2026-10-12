@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/notifications/', include('smart_career.apps.notifications.urls')),
     path('api/agents/', include('smart_career.apps.agents.urls')),
     path('api/clients/', include('smart_career.apps.clients.urls')),
+    path('api/finance/', include('smart_career.apps.finance.urls')),
 ]
 
 if settings.DEBUG:

@@ -18,6 +18,9 @@ import AlertCenterPage from './pages/AlertCenterPage'
 import NotificationsPage from './pages/NotificationsPage'
 import AgentListPage from './pages/AgentListPage'
 import ClientListPage from './pages/ClientListPage'
+import PurchaseListPage from './pages/PurchaseListPage'
+import InvoiceListPage from './pages/InvoiceListPage'
+import FinanceDashboardPage from './pages/FinanceDashboardPage'
 
 const queryClient = new QueryClient()
 
@@ -167,6 +170,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ClientListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance"
+        element={
+          <ProtectedRoute>
+            <FinanceDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/purchases"
+        element={
+          <ProtectedRoute>
+            <PurchaseListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/invoices"
+        element={
+          <ProtectedRoute>
+            <InvoiceListPage />
           </ProtectedRoute>
         }
       />
