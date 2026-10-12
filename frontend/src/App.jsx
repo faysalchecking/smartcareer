@@ -16,6 +16,8 @@ import DeploymentListPage from './pages/DeploymentListPage'
 import TaskListPage from './pages/TaskListPage'
 import AlertCenterPage from './pages/AlertCenterPage'
 import NotificationsPage from './pages/NotificationsPage'
+import AgentListPage from './pages/AgentListPage'
+import ClientListPage from './pages/ClientListPage'
 
 const queryClient = new QueryClient()
 
@@ -149,6 +151,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/agents"
+        element={
+          <ProtectedRoute>
+            <AgentListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clients"
+        element={
+          <ProtectedRoute>
+            <ClientListPage />
           </ProtectedRoute>
         }
       />

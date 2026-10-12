@@ -19,6 +19,8 @@ urlpatterns = [
     path('api/tasks/', include('smart_career.apps.tasks.urls')),
     path('api/alerts/', include('smart_career.apps.alerts.urls')),
     path('api/notifications/', include('smart_career.apps.notifications.urls')),
+    path('api/agents/', include('smart_career.apps.agents.urls')),
+    path('api/clients/', include('smart_career.apps.clients.urls')),
 ]
 
 if settings.DEBUG:
