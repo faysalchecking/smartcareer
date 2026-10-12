@@ -21,6 +21,8 @@ import ClientListPage from './pages/ClientListPage'
 import PurchaseListPage from './pages/PurchaseListPage'
 import InvoiceListPage from './pages/InvoiceListPage'
 import FinanceDashboardPage from './pages/FinanceDashboardPage'
+import AIChatPage from './pages/AIChatPage'
+import AIConversationsPage from './pages/AIConversationsPage'
 
 const queryClient = new QueryClient()
 
@@ -194,6 +196,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <InvoiceListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai"
+        element={
+          <ProtectedRoute>
+            <AIConversationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai/chat/:conversationId"
+        element={
+          <ProtectedRoute>
+            <AIChatPage />
           </ProtectedRoute>
         }
       />

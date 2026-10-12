@@ -61,7 +61,7 @@ export default function DashboardPage() {
             <NavLink icon="💰" label="Finance" onClick={() => navigate('/finance')} />
             <NavLink icon="📄" label="Invoices" onClick={() => navigate('/finance/invoices')} />
             <NavLink icon="📦" label="Purchases" onClick={() => navigate('/finance/purchases')} />
-            <NavLink icon="🤖" label="AI" onClick={() => {}} />
+            <NavLink icon="🤖" label="AI" onClick={() => navigate('/ai')} />
             <NavLink icon="🏥" label="Medical" onClick={() => navigate('/medical')} />
             <NavLink icon="✈️" label="Visa" onClick={() => navigate('/visa')} />
             <NavLink icon="🎫" label="Tickets" onClick={() => navigate('/tickets')} />
