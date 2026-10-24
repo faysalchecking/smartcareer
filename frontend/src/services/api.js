@@ -1,77 +1,67 @@
-import axios from 'axios'
+import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api'
+const API_BASE_URL = 'http://localhost:8000/api';
 
 // Create axios instance
-const apiClient = axios.create({
+const apiInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+  withCredentials: true,  // Include cookies
+});
 
-// Request interceptor - add auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+// Get CSRF token from cookie
+function getCsrfToken() {
+  const name = 'csrftoken';
+  let csrftoken = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        csrftoken = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
     }
-    return config
+  }
+  return csrftoken;
+}
+
+// Request interceptor - add CSRF token and auth headers
+apiInstance.interceptors.request.use(
+  (config) => {
+    // Add CSRF token for non-GET requests
+    if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        config.headers['X-CSRFToken'] = csrfToken;
+      }
+    }
+    
+    // Add auth token if exists
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return config;
   },
   (error) => Promise.reject(error)
-)
+);
 
 // Response interceptor - handle errors
-apiClient.interceptors.response.use(
+apiInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      // Unauthorized - clear token and redirect to login
+      localStorage.removeItem('auth_token');
+      window.location.href = '/login';
     }
-    return Promise.reject(error)
+    if (error.response?.status === 403) {
+      // Forbidden - permission denied
+      console.error('Permission denied:', error.response.data);
+    }
+    return Promise.reject(error);
   }
-)
+);
 
-// Authentication endpoints
-export const authAPI = {
-  login: (email, password) =>
-    apiClient.post('/auth/login/', { email, password }),
-  logout: () =>
-    apiClient.post('/auth/logout/'),
-  me: () =>
-    apiClient.get('/auth/me/'),
-  refreshToken: () =>
-    apiClient.post('/auth/refresh/'),
-}
-
-// Candidates endpoints
-export const candidatesAPI = {
-  list: (params) =>
-    apiClient.get('/candidates/', { params }),
-  get: (id) =>
-    apiClient.get(`/candidates/${id}/`),
-  create: (data) =>
-    apiClient.post('/candidates/', data),
-  update: (id, data) =>
-    apiClient.patch(`/candidates/${id}/`, data),
-  delete: (id) =>
-    apiClient.delete(`/candidates/${id}/`),
-}
-
-// Jobs endpoints
-export const jobsAPI = {
-  list: (params) =>
-    apiClient.get('/jobs/', { params }),
-  get: (id) =>
-    apiClient.get(`/jobs/${id}/`),
-  create: (data) =>
-    apiClient.post('/jobs/', data),
-  update: (id, data) =>
-    apiClient.patch(`/jobs/${id}/`, data),
-}
-
-export default apiClient
+export default apiInstance;

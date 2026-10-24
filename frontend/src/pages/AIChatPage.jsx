@@ -9,9 +9,11 @@ export default function AIChatPage() {
   const { conversationId } = useParams()
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [localMessages, setLocalMessages] = useState([])
+  const [error, setError] = useState('')
   const messagesEndRef = useRef(null)
 
-  const { data: conversation, refetch } = useQuery({
+  const { data: conversation, refetch, isLoading: convLoading } = useQuery({
     queryKey: ['ai_conversation', conversationId],
     queryFn: () => aiAPI.getConversation(conversationId),
     enabled: !!conversationId,
@@ -19,28 +21,45 @@ export default function AIChatPage() {
 
   const sendMessageMutation = useMutation({
     mutationFn: (msg) => aiAPI.sendMessage(conversationId, msg),
-    onSuccess: () => {
+    onSuccess: (response) => {
       setMessage('')
+      setError('')
+      setLocalMessages([])
       refetch()
+    },
+    onError: (err) => {
+      setError(
+        err.response?.data?.error || 
+        'Failed to send message. Make sure AI provider is configured.'
+      )
+      setIsLoading(false)
     },
   })
 
   const handleSendMessage = () => {
     if (!message.trim()) return
+    
+    setError('')
     setIsLoading(true)
-    sendMessageMutation.mutate(message, {
-      onSettled: () => setIsLoading(false),
-    })
+    
+    // Add to local messages immediately for UX
+    setLocalMessages(prev => [...prev, { role: 'USER', content: message }])
+    
+    sendMessageMutation.mutate(message)
   }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  useEffect(scrollToBottom, [conversation?.data?.messages])
+  useEffect(scrollToBottom, [conversation?.data?.messages, localMessages])
+
+  if (convLoading) {
+    return <div className="text-center py-12">Loading conversation...</div>
+  }
 
   if (!conversation) {
-    return <div className="text-center py-12">Loading...</div>
+    return <div className="text-center py-12">Conversation not found</div>
   }
 
   const messages = conversation.data.messages || []
@@ -80,8 +99,22 @@ export default function AIChatPage() {
             </div>
           </div>
         ))}
+        {localMessages.map((msg, idx) => (
+          <div key={`local-${idx}`} className="flex justify-end">
+            <div className="max-w-md px-4 py-2 rounded-lg bg-blue-400 text-white opacity-70">
+              <p className="text-sm">{msg.content}</p>
+            </div>
+          </div>
+        ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border-t border-red-200 p-4">
+          <p className="text-red-700 text-sm">{error}</p>
+        </div>
+      )}
 
       {/* Input */}
       <div className="bg-white border-t border-gray-200 p-4">
@@ -92,6 +125,7 @@ export default function AIChatPage() {
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
                 handleSendMessage()
               }
             }}

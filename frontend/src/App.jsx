@@ -23,6 +23,9 @@ import InvoiceListPage from './pages/InvoiceListPage'
 import FinanceDashboardPage from './pages/FinanceDashboardPage'
 import AIChatPage from './pages/AIChatPage'
 import AIConversationsPage from './pages/AIConversationsPage'
+import CandidateCreatePage from './pages/CandidateCreatePage'
+import JobCreatePage from './pages/JobCreatePage'
+import MedicalExamCreatePage from './pages/MedicalExamCreatePage'
 
 const queryClient = new QueryClient()
 
@@ -215,7 +218,30 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/candidates/new"
+        element={
+          <ProtectedRoute>
+            <CandidateCreatePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/jobs/new"
+        element={
+          <ProtectedRoute>
+            <JobCreatePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/medical/new"
+        element={
+          <ProtectedRoute>
+            <MedicalExamCreatePage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
     </Routes>
   )

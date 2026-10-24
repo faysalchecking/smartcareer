@@ -55,29 +55,32 @@ class AIConversationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
-    @action(detail=True, methods=['post'])
-    def send_message(self, request, pk=None):
-        """Send message to AI"""
-        conversation = self.get_object()
-        user_message = request.data.get('message')
-        
-        if not user_message:
-            return Response(
-                {'error': 'Message is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        service = AIService(request.user)
-        result = service.send_message(conversation, user_message)
-        
-        if not result['success']:
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({
-            'success': True,
-            'message': AIMessageSerializer(result['message']).data,
-            'tokens_used': result.get('tokens_used', 0),
-        })
+    # Current code might have wrong endpoint signature
+# Let's check and fix
+
+@action(detail=True, methods=['post'])
+def send_message(self, request, pk=None):
+    """Send message to AI"""
+    conversation = self.get_object()
+    user_message = request.data.get('message')
+    
+    if not user_message:
+        return Response(
+            {'error': 'Message is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    service = AIService(request.user)
+    result = service.send_message(conversation, user_message)
+    
+    if not result['success']:
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({
+        'success': True,
+        'message': AIMessageSerializer(result['message']).data,
+        'tokens_used': result.get('tokens_used', 0),
+    })
 
 class AIToolCallViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
