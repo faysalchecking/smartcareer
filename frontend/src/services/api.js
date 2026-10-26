@@ -1,67 +1,56 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
-// Create axios instance
+const ACCESS_TOKEN_KEY = 'access_token'
+const REFRESH_TOKEN_KEY = 'refresh_token'
+const USER_KEY = 'user'
+const LOGIN_PATH = '/auth/login/'
+
 const apiInstance = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,  // Include cookies
-});
+  withCredentials: true,
+})
 
-// Get CSRF token from cookie
 function getCsrfToken() {
-  const name = 'csrftoken';
-  let csrftoken = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        csrftoken = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return csrftoken;
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)
+  return match ? decodeURIComponent(match[1]) : null
 }
 
-// Request interceptor - add CSRF token and auth headers
-apiInstance.interceptors.request.use(
-  (config) => {
-    // Add CSRF token for non-GET requests
-    if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
-      const csrfToken = getCsrfToken();
-      if (csrfToken) {
-        config.headers['X-CSRFToken'] = csrfToken;
-      }
+apiInstance.interceptors.request.use((config) => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken
     }
-    
-    // Add auth token if exists
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  }
 
-// Response interceptor - handle errors
+  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`
+  }
+
+  return config
+})
+
 apiInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
-    }
-    if (error.response?.status === 403) {
-      // Forbidden - permission denied
-      console.error('Permission denied:', error.response.data);
-    }
-    return Promise.reject(error);
-  }
-);
+    const isLoginRequest = error.config?.url?.startsWith(LOGIN_PATH)
 
-export default apiInstance;
+    // A 401 on the login request means wrong credentials; the form must show that error.
+    // A 401 anywhere else means the session has ended, so clear it and return to login.
+    if (error.response?.status === 401 && !isLoginRequest) {
+      localStorage.removeItem(ACCESS_TOKEN_KEY)
+      localStorage.removeItem(REFRESH_TOKEN_KEY)
+      localStorage.removeItem(USER_KEY)
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
+
+export default apiInstance

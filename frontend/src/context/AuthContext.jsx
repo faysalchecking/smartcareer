@@ -1,64 +1,85 @@
-import React, { createContext, useState, useEffect, useContext } from 'react'
-import { authAPI } from '../services/api'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { authAPI } from '../services/auth'
 
-export const AuthContext = createContext()
+const ACCESS_TOKEN_KEY = 'access_token'
+const REFRESH_TOKEN_KEY = 'refresh_token'
+const USER_KEY = 'user'
+
+export const AuthContext = createContext(null)
+
+function readStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY))
+  } catch {
+    return null
+  }
+}
+
+function clearSession() {
+  localStorage.removeItem(ACCESS_TOKEN_KEY)
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
+  localStorage.removeItem(USER_KEY)
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Check if user is already logged in
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+    const storedUser = readStoredUser()
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser))
-      setIsAuthenticated(true)
+    if (token && storedUser) {
+      setUser(storedUser)
+    } else {
+      clearSession()
     }
-
     setIsLoading(false)
   }, [])
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     try {
-      setIsLoading(true)
-      const response = await authAPI.login(email, password)
+      const { data } = await authAPI.login(email, password)
 
-      const { user: userData, access_token } = response.data
-
-      localStorage.setItem('access_token', access_token)
-      localStorage.setItem('user', JSON.stringify(userData))
-
-      setUser(userData)
-      setIsAuthenticated(true)
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token)
+      localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token)
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+      setUser(data.user)
 
       return { success: true }
     } catch (error) {
-      console.error('Login failed:', error)
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.detail || 'Login failed. Please try again.',
+        error:
+          error.response?.data?.error ||
+          error.response?.data?.detail ||
+          'Login failed. Please try again.',
       }
-    } finally {
-      setIsLoading(false)
     }
-  }
+  }, [])
 
-  const logout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('user')
+  const logout = useCallback(async () => {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+
+    try {
+      if (refreshToken) {
+        // Revokes the refresh token on the server, so it cannot be reused after logout.
+        await authAPI.logout(refreshToken)
+      }
+    } catch {
+      // The token may already be expired. The local session is cleared regardless.
+    }
+
+    clearSession()
     setUser(null)
-    setIsAuthenticated(false)
-  }
+  }, [])
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
-        isAuthenticated,
+        isAuthenticated: Boolean(user),
         login,
         logout,
       }}
@@ -68,7 +89,6 @@ export function AuthProvider({ children }) {
   )
 }
 
-// Custom hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {

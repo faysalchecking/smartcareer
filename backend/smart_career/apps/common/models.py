@@ -1,6 +1,8 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+
 
 class AuditLog(models.Model):
     """Comprehensive audit logging for all system activities"""
@@ -41,7 +43,7 @@ class AuditLog(models.Model):
     ]
     
     log_id = models.CharField(
-        max_length=20,
+        max_length=32,
         unique=True,
         db_index=True,
         editable=False
@@ -142,7 +144,5 @@ class AuditLog(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.log_id:
-            from datetime import datetime
-            count = AuditLog.objects.count() + 1
-            self.log_id = f"AUL-{datetime.now().strftime('%Y%m%d')}-{count:06d}"
+            self.log_id = f"AUL-{timezone.now():%Y%m%d}-{uuid.uuid4().hex[:12].upper()}"
         super().save(*args, **kwargs)

@@ -20,28 +20,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ['user', 'role', 'phone', 'address', 'is_active']
 
 class LoginSerializer(serializers.Serializer):
-    """Validate login credentials"""
+    """Validate login credentials. Accepts email and password."""
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, min_length=6)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     def validate(self, data):
-        email = data.get('email')
-        password = data.get('password')
+        email = data['email'].strip().lower()
+        password = data['password']
 
-        # Get user by email
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        candidates = User.objects.filter(email__iexact=email)
+        if candidates.count() != 1:
+            # Zero or several matches are treated the same way, so the response
+            # does not reveal which emails exist.
             raise serializers.ValidationError('Invalid email or password.')
 
-        # Authenticate with username and password
-        from django.contrib.auth import authenticate
-        authenticated_user = authenticate(username=user.username, password=password)
-
-        if not authenticated_user:
+        user = authenticate(username=candidates.get().username, password=password)
+        if user is None or not user.is_active:
             raise serializers.ValidationError('Invalid email or password.')
 
-        data['user'] = authenticated_user
+        data['user'] = user
         return data
 
 class LoginResponseSerializer(serializers.Serializer):
